@@ -14,138 +14,191 @@ x-depends-datastores: &depends-datastores
       condition: service_healthy
 
 x-environment: &common-vars
-  # URLs públicas da instalação SuaOS
+  # =========================================================
+  # SUAOS - URLs PUBLICAS
+  # =========================================================
   BETTER_AUTH_URL: "https://many.suaos.ia.br"
   NEXT_PUBLIC_BUILDER_URL: "https://many.suaos.ia.br"
   NEXT_PUBLIC_REALTIME_URL: "https://many-rt.suaos.ia.br"
   NEXT_PUBLIC_ASSET_URL: "https://many-files.suaos.ia.br/chatbotx/"
 
-  # Segredos da aplicação
-  BETTER_AUTH_SECRET: "${BETTER_AUTH_SECRET:-U2XCZBJqOQGTPJamuH3y3La1xPzoY7BhcKODMM7phO9C0YVF54sDsQLlBxqp47bD}"
-  ENCRYPTION_KEY: "${ENCRYPTION_KEY:-f078ace13993ca9d141255a71d260a38b3dcb014f468a4326eeeed35a3199a9e}"
-  REALTIME_API_KEY: "${REALTIME_API_KEY:-d8eWUtVG7T7iaBcPC7yJf4j0OpelbYCThZ9BrKs1LFA}"
-  REALTIME_BROADCAST_SECRET: "${REALTIME_BROADCAST_SECRET:-4518c0b6169f67257cb013fd867302bbc800181088784e8d9ee40e6200e29466}"
+  # =========================================================
+  # SECRETS - GERADOS AUTOMATICAMENTE PELO COOLIFY
+  # =========================================================
+  BETTER_AUTH_SECRET: "${SERVICE_BASE64_64_AUTH}"
+  ENCRYPTION_KEY: "${SERVICE_HEX_64_ENCRYPTION}"
+  REALTIME_API_KEY: "${SERVICE_BASE64_64_REALTIMEAPI}"
+  REALTIME_BROADCAST_SECRET: "${SERVICE_HEX_64_REALTIMEBROADCAST}"
 
-  # Banco / Redis internos
-  DATABASE_URL: "postgresql://${POSTGRES_USER:-chatbotx}:${POSTGRES_PASSWORD:-secretkey}@postgres:5432/${POSTGRES_DB:-chatbotx}?schema=public"
+  # =========================================================
+  # DATABASE / REDIS
+  # =========================================================
+  DATABASE_URL: "postgresql://chatbotx:${SERVICE_PASSWORD_64_POSTGRES}@postgres:5432/chatbotx?schema=public"
   REDIS_URL: "redis://redis:6379"
 
-  # Executor JS interno e isolado
+  # =========================================================
+  # JAVASCRIPT EXECUTOR
+  # =========================================================
   JAVASCRIPT_EXECUTOR_URL: "http://javascript-executor:3210"
-  JAVASCRIPT_EXECUTOR_TOKEN: "${JAVASCRIPT_EXECUTOR_TOKEN:-LEzgrGHzuFz-h_99ZbY4VTy21deMnWEtW2dAFvmY0Vadp-Yrs-t4gAVC206J5pEl}"
+  JAVASCRIPT_EXECUTOR_TOKEN: "${SERVICE_BASE64_64_JSEXEC}"
 
-  # Realtime interno
+  # =========================================================
+  # REALTIME
+  # =========================================================
   REALTIME_INTERNAL_URL: "http://realtime:1999"
 
-  # Storage interno (RustFS/S3)
-  S3_ACCESS_KEY_ID: "${RUSTFS_ACCESS_KEY:-chatbotx}"
-  S3_SECRET_ACCESS_KEY: "${RUSTFS_SECRET_KEY:-secretkey}"
+  # =========================================================
+  # STORAGE / RUSTFS
+  # IMPORTANTE: ChatbotX usa S3_ENPOINT assim mesmo
+  # =========================================================
+  S3_ACCESS_KEY_ID: "chatbotx"
+  S3_SECRET_ACCESS_KEY: "${SERVICE_PASSWORD_64_RUSTFS}"
   S3_BUCKET: "chatbotx"
   S3_ENPOINT: "http://filesystem:9000"
   S3_REGION: "us-west-2"
 
-  # ChatbotX
+  # =========================================================
+  # CHATBOTX
+  # =========================================================
   NEXT_PUBLIC_EDITION: "community"
   NODE_OPTIONS: "--max_old_space_size=4096"
+
   RUN_DB_MIGRATE: "true"
   RUN_DB_SEED: "true"
+
   SCHEDULER_BUCKET_RANGE: "0-255"
 
-  # SMTP local para a instalação inicial.
-  # Depois podemos trocar pelo Resend da SuaOS.
+  # =========================================================
+  # EMAIL
+  # Por enquanto Mailhog interno.
+  # Depois colocamos Resend.
+  # =========================================================
   SMTP_FROM: "no-reply@suaos.ia.br"
   SMTP_SERVER: "smtp://mailhog:1025"
 
-x-worker: &worker
-  <<: [*network, *depends-datastores]
-  image: "ghcr.io/chatbotxio/chatbotx-worker:latest"
-  platform: "linux/amd64"
-  restart: unless-stopped
-  extra_hosts:
-    - "host.docker.internal:host-gateway"
-  environment:
-    <<: *common-vars
-
 x-rustfs-environment: &rustfs-environment
-  RUSTFS_ACCESS_KEY: "${RUSTFS_ACCESS_KEY:-chatbotx}"
-  RUSTFS_SECRET_KEY: "${RUSTFS_SECRET_KEY:-secretkey}"
+  RUSTFS_ACCESS_KEY: "chatbotx"
+  RUSTFS_SECRET_KEY: "${SERVICE_PASSWORD_64_RUSTFS}"
 
 services:
+
+  # =========================================================
+  # POSTGRESQL
+  # =========================================================
   postgres:
     <<: *network
+
     image: "timescale/timescaledb-ha:pg18.4-ts2.27.2-all"
+
     restart: unless-stopped
+
     expose:
       - "5432"
+
     volumes:
       - "db-data:/home/postgres/pgdata"
+
     command:
       - postgres
       - -c
-      - "log_statement=${POSTGRES_LOG_STATEMENT:-none}"
+      - "log_statement=none"
+
     environment:
-      POSTGRES_DB: "${POSTGRES_DB:-chatbotx}"
-      POSTGRES_USER: "${POSTGRES_USER:-chatbotx}"
-      POSTGRES_PASSWORD: "${POSTGRES_PASSWORD:-secretkey}"
+      POSTGRES_DB: "chatbotx"
+      POSTGRES_USER: "chatbotx"
+      POSTGRES_PASSWORD: "${SERVICE_PASSWORD_64_POSTGRES}"
+
     healthcheck:
       test:
         - CMD-SHELL
-        - "pg_isready -d $${POSTGRES_DB} -U $${POSTGRES_USER}"
+        - "pg_isready -d chatbotx -U chatbotx"
+
       interval: 10s
       timeout: 5s
       retries: 5
       start_period: 20s
 
+
+  # =========================================================
+  # REDIS
+  # =========================================================
   redis:
     <<: *network
+
     image: "redis:8.8.0-alpine"
+
     restart: unless-stopped
+
     expose:
       - "6379"
+
     volumes:
       - "redis-data:/data"
+
     healthcheck:
       test:
         - CMD
         - redis-cli
         - ping
+
       interval: 10s
       timeout: 5s
       retries: 5
 
+
+  # =========================================================
+  # STORAGE - RUSTFS
+  # =========================================================
   filesystem:
     <<: *network
+
     image: "rustfs/rustfs:1.0.0-beta.8"
+
     restart: unless-stopped
+
     command: 'server /data --console-address ":9001"'
+
     expose:
       - "9000"
       - "9001"
+
     environment:
       <<: *rustfs-environment
+
     volumes:
       - "filesystem-data:/data"
+
     healthcheck:
       test:
         - CMD
         - sh
         - -c
         - "curl -f http://127.0.0.1:9000/health && curl -f http://127.0.0.1:9001/rustfs/console/health"
+
       interval: 30s
       timeout: 10s
       retries: 3
       start_period: 40s
+
     extra_hosts:
       - "host.docker.internal:host-gateway"
 
+
+  # =========================================================
+  # CRIA BUCKET CHATBOTX
+  # =========================================================
   filesystem-init:
     <<: *network
+
     image: "rustfs/rc:v0.1.22"
+
     depends_on:
       filesystem:
         condition: service_healthy
+
     environment:
       <<: *rustfs-environment
+
     entrypoint: >
       /bin/sh -c "rc alias set local http://filesystem:9000
       $${RUSTFS_ACCESS_KEY} $${RUSTFS_SECRET_KEY};
@@ -154,119 +207,199 @@ services:
       rc cp /tmp/empty local/chatbotx/public/;
       rc anonymous set public local/chatbotx/public;"
 
+
+  # =========================================================
+  # MAILHOG
+  # APENAS INTERNO
+  # =========================================================
   mailhog:
     <<: *network
+
     image: "mailhog/mailhog:v1.0.1"
+
     restart: unless-stopped
+
     expose:
       - "1025"
       - "8025"
 
+
+  # =========================================================
+  # ADMINER
+  # APENAS INTERNO
+  # =========================================================
   adminer:
     <<: *network
+
     image: "adminer:5.4.2"
+
     restart: unless-stopped
+
     depends_on:
       postgres:
         condition: service_healthy
+
     expose:
       - "8080"
 
-  builder:
-    <<: [*network, *depends-datastores]
-    image: "ghcr.io/chatbotxio/chatbotx-builder:latest"
-    platform: "linux/amd64"
-    restart: unless-stopped
-    environment:
-      <<: *common-vars
-      REALTIME_INTERNAL_URL: "http://realtime:1999"
-    expose:
-      - "3000"
-    healthcheck:
-      test:
-        - CMD
-        - curl
-        - -f
-        - "http://localhost:3000/api/health"
-      interval: 30s
-      timeout: 10s
-      retries: 3
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
 
-  worker:
-    <<: *worker
-    command:
-      - worker
-      - all
-    networks:
-      - main
-      - javascript-executor-network
-    environment:
-      <<: *common-vars
-      REALTIME_INTERNAL_URL: "http://realtime:1999"
-    depends_on:
-      postgres:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
-      filesystem:
-        condition: service_healthy
-      javascript-executor:
-        condition: service_healthy
-
+  # =========================================================
+  # JAVASCRIPT EXECUTOR
+  # REDE INTERNA ISOLADA
+  # =========================================================
   javascript-executor:
     image: "ghcr.io/chatbotxio/chatbotx-javascript-executor:latest"
+
     platform: "linux/amd64"
+
     restart: unless-stopped
+
     networks:
       - javascript-executor-network
+
     environment:
-      JAVASCRIPT_EXECUTOR_TOKEN: "${JAVASCRIPT_EXECUTOR_TOKEN:-LEzgrGHzuFz-h_99ZbY4VTy21deMnWEtW2dAFvmY0Vadp-Yrs-t4gAVC206J5pEl}"
-      MAX_CONCURRENCY: "${MAX_CONCURRENCY:-2}"
+      JAVASCRIPT_EXECUTOR_TOKEN: "${SERVICE_BASE64_64_JSEXEC}"
+      MAX_CONCURRENCY: "2"
+
     cap_drop:
       - ALL
+
     security_opt:
       - "no-new-privileges:true"
+
     read_only: true
+
     tmpfs:
       - "/tmp:size=16m,noexec,nosuid,nodev"
+
     pids_limit: 128
+
     deploy:
       resources:
         limits:
           cpus: "2"
-          memory: "512M"
+          memory: 512M
           pids: 128
+
     healthcheck:
       test:
         - CMD
         - curl
         - -f
         - "http://localhost:3210/health"
+
       interval: 30s
       timeout: 10s
       retries: 3
 
+
+  # =========================================================
+  # REALTIME
+  # =========================================================
   realtime:
     <<: *network
+
     image: "ghcr.io/chatbotxio/chatbotx-realtime:latest"
+
     platform: "linux/amd64"
+
     restart: unless-stopped
+
     entrypoint: >
       bash -c "
         cd /app/apps/realtime;
         echo \"REALTIME_BROADCAST_SECRET=$${REALTIME_BROADCAST_SECRET}\" > .env;
-        HOSTNAME=${HOSTNAME:-0.0.0.0} PORT=${PORT:-1999} pnpm dlx partykit dev;
+        HOSTNAME=0.0.0.0 PORT=1999 pnpm dlx partykit dev;
       "
+
     environment:
       <<: *common-vars
+
     expose:
       - "1999"
+
     extra_hosts:
       - "host.docker.internal:host-gateway"
 
+
+  # =========================================================
+  # CHATBOTX BUILDER / FRONTEND
+  # =========================================================
+  builder:
+    <<:
+      - *network
+      - *depends-datastores
+
+    image: "ghcr.io/chatbotxio/chatbotx-builder:latest"
+
+    platform: "linux/amd64"
+
+    restart: unless-stopped
+
+    environment:
+      <<: *common-vars
+
+    expose:
+      - "3000"
+
+    healthcheck:
+      test:
+        - CMD
+        - curl
+        - -f
+        - "http://localhost:3000/api/health"
+
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+
+  # =========================================================
+  # WORKER
+  # =========================================================
+  worker:
+    image: "ghcr.io/chatbotxio/chatbotx-worker:latest"
+
+    platform: "linux/amd64"
+
+    restart: unless-stopped
+
+    networks:
+      - main
+      - javascript-executor-network
+
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+      redis:
+        condition: service_healthy
+
+      filesystem:
+        condition: service_healthy
+
+      javascript-executor:
+        condition: service_healthy
+
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+    environment:
+      <<: *common-vars
+
+    command:
+      - worker
+      - all
+
+
+# =========================================================
+# NETWORKS
+# =========================================================
 networks:
+
   main:
     driver: bridge
 
@@ -274,7 +407,14 @@ networks:
     driver: bridge
     internal: true
 
+
+# =========================================================
+# VOLUMES PERSISTENTES
+# =========================================================
 volumes:
+
   db-data:
+
   redis-data:
+
   filesystem-data:
