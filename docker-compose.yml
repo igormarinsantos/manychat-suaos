@@ -1,128 +1,422 @@
+name: chatbotx-suaos
+
+x-network: &network
+  networks:
+    - main
+
+x-depends-datastores: &depends-datastores
+  depends_on:
+    postgres:
+      condition: service_healthy
+    redis:
+      condition: service_healthy
+    filesystem:
+      condition: service_healthy
+
+x-environment: &common-vars
+  # =========================================================
+  # SUAOS - URLs PUBLICAS
+  # =========================================================
+  BETTER_AUTH_URL: "https://many.suaos.ia.br"
+  NEXT_PUBLIC_BUILDER_URL: "https://many.suaos.ia.br"
+  NEXT_PUBLIC_REALTIME_URL: "https://many-rt.suaos.ia.br"
+  NEXT_PUBLIC_ASSET_URL: "https://many-files.suaos.ia.br/chatbotx/"
+
+  # =========================================================
+  # SECRETS - GERADOS AUTOMATICAMENTE PELO COOLIFY
+  # =========================================================
+  BETTER_AUTH_SECRET: "${SERVICE_BASE64_64_AUTH}"
+  ENCRYPTION_KEY: "${SERVICE_HEX_64_ENCRYPTION}"
+  REALTIME_API_KEY: "${SERVICE_BASE64_64_REALTIMEAPI}"
+  REALTIME_BROADCAST_SECRET: "${SERVICE_HEX_64_REALTIMEBROADCAST}"
+
+  # =========================================================
+  # DATABASE / REDIS
+  # =========================================================
+  DATABASE_URL: "postgresql://chatbotx:${SERVICE_PASSWORD_64_POSTGRES}@postgres:5432/chatbotx?schema=public"
+  REDIS_URL: "redis://redis:6379"
+
+  # =========================================================
+  # JAVASCRIPT EXECUTOR
+  # =========================================================
+  JAVASCRIPT_EXECUTOR_URL: "http://javascript-executor:3210"
+  JAVASCRIPT_EXECUTOR_TOKEN: "${SERVICE_BASE64_64_JSEXEC}"
+
+  # =========================================================
+  # REALTIME
+  # =========================================================
+  REALTIME_INTERNAL_URL: "http://realtime:1999"
+
+  # =========================================================
+  # STORAGE / RUSTFS
+  # IMPORTANTE: ChatbotX usa S3_ENPOINT assim mesmo
+  # =========================================================
+  S3_ACCESS_KEY_ID: "chatbotx"
+  S3_SECRET_ACCESS_KEY: "${SERVICE_PASSWORD_64_RUSTFS}"
+  S3_BUCKET: "chatbotx"
+  S3_ENPOINT: "http://filesystem:9000"
+  S3_REGION: "us-west-2"
+
+  # =========================================================
+  # CHATBOTX
+  # =========================================================
+  NEXT_PUBLIC_EDITION: "community"
+  NODE_OPTIONS: "--max_old_space_size=4096"
+
+  RUN_DB_MIGRATE: "true"
+  RUN_DB_SEED: "true"
+
+  SCHEDULER_BUCKET_RANGE: "0-255"
+
+  # =========================================================
+  # EMAIL
+  # Por enquanto Mailhog interno.
+  # Depois colocamos Resend.
+  # =========================================================
+  SMTP_FROM: "no-reply@suaos.ia.br"
+  SMTP_SERVER: "smtp://mailhog:1025"
+
+x-rustfs-environment: &rustfs-environment
+  RUSTFS_ACCESS_KEY: "chatbotx"
+  RUSTFS_SECRET_KEY: "${SERVICE_PASSWORD_64_RUSTFS}"
+
+services:
+
+  # =========================================================
+  # POSTGRESQL
+  # =========================================================
+  postgres:
+    <<: *network
+
+    image: "timescale/timescaledb-ha:pg18.4-ts2.27.2-all"
+
+    restart: unless-stopped
+
+    expose:
+      - "5432"
+
+    volumes:
+      - "db-data:/home/postgres/pgdata"
+
+    command:
+      - postgres
+      - -c
+      - "log_statement=none"
+
+    environment:
+      POSTGRES_DB: "chatbotx"
+      POSTGRES_USER: "chatbotx"
+      POSTGRES_PASSWORD: "${SERVICE_PASSWORD_64_POSTGRES}"
+
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - "pg_isready -d chatbotx -U chatbotx"
+
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+
+  # =========================================================
+  # REDIS
+  # =========================================================
+  redis:
+    <<: *network
+
+    image: "redis:8.8.0-alpine"
+
+    restart: unless-stopped
+
+    expose:
+      - "6379"
+
+    volumes:
+      - "redis-data:/data"
+
+    healthcheck:
+      test:
+        - CMD
+        - redis-cli
+        - ping
+
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+
+  # =========================================================
+  # STORAGE - RUSTFS
+  # =========================================================
+  filesystem:
+    <<: *network
+
+    image: "rustfs/rustfs:1.0.0-beta.8"
+
+    restart: unless-stopped
+
+    command: 'server /data --console-address ":9001"'
+
+    expose:
+      - "9000"
+      - "9001"
+
+    environment:
+      <<: *rustfs-environment
+
+    volumes:
+      - "filesystem-data:/data"
+
+    healthcheck:
+      test:
+        - CMD
+        - sh
+        - -c
+        - "curl -f http://127.0.0.1:9000/health && curl -f http://127.0.0.1:9001/rustfs/console/health"
+
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+
+  # =========================================================
+  # CRIA BUCKET CHATBOTX
+  # =========================================================
+  filesystem-init:
+    <<: *network
+
+    image: "rustfs/rc:v0.1.22"
+
+    depends_on:
       filesystem:
         condition: service_healthy
+
     environment:
-      <<: *rustfs-env
+      <<: *rustfs-environment
+
     entrypoint: >
-      /bin/sh -ec "rc alias set local http://filesystem:9000
+      /bin/sh -c "rc alias set local http://filesystem:9000
       $${RUSTFS_ACCESS_KEY} $${RUSTFS_SECRET_KEY};
       rc mb local/chatbotx --ignore-existing;
-      touch /tmp/empty;
+      touch /tmp/empty &&
       rc cp /tmp/empty local/chatbotx/public/;
       rc anonymous set public local/chatbotx/public;"
 
+
+  # =========================================================
+  # MAILHOG
+  # APENAS INTERNO
+  # =========================================================
   mailhog:
     <<: *network
-    image: mailhog/mailhog:v1.0.1
+
+    image: "mailhog/mailhog:v1.0.1"
+
     restart: unless-stopped
+
     expose:
       - "1025"
       - "8025"
 
+
+  # =========================================================
+  # ADMINER
+  # APENAS INTERNO
+  # =========================================================
   adminer:
     <<: *network
-    image: adminer:5.4.2
+
+    image: "adminer:5.4.2"
+
     restart: unless-stopped
-    expose:
-      - "8080"
+
     depends_on:
       postgres:
         condition: service_healthy
 
-  builder:
-    <<:
-      - *network
-      - *depends-datastores
-    image: ghcr.io/chatbotxio/chatbotx-builder:latest
-    platform: linux/amd64
-    restart: unless-stopped
-    environment:
-      <<: *common-env
     expose:
-      - "3000"
-    healthcheck:
-      # Imagem builder nao tem curl. Node existe (Next.js) e consulta a rota real.
-      test:
-        - CMD
-        - node
-        - -e
-        - "fetch('http://127.0.0.1:3000/api/health', {signal:AbortSignal.timeout(8000)}).then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 120s
+      - "8080"
 
+
+  # =========================================================
+  # JAVASCRIPT EXECUTOR
+  # REDE INTERNA ISOLADA
+  # =========================================================
   javascript-executor:
-    image: ghcr.io/chatbotxio/chatbotx-javascript-executor:latest
-    platform: linux/amd64
+    image: "ghcr.io/chatbotxio/chatbotx-javascript-executor:latest"
+
+    platform: "linux/amd64"
+
     restart: unless-stopped
+
     networks:
       - javascript-executor-network
+
     environment:
       JAVASCRIPT_EXECUTOR_TOKEN: "${SERVICE_BASE64_64_JSEXEC}"
       MAX_CONCURRENCY: "2"
+
     cap_drop:
       - ALL
+
     security_opt:
-      - no-new-privileges:true
+      - "no-new-privileges:true"
+
     read_only: true
+
     tmpfs:
-      - /tmp:size=16m,noexec,nosuid,nodev
+      - "/tmp:size=16m,noexec,nosuid,nodev"
+
     pids_limit: 128
+
     deploy:
       resources:
         limits:
           cpus: "2"
           memory: 512M
           pids: 128
+
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://127.0.0.1:3210/health"]
+      test:
+        - CMD
+        - curl
+        - -f
+        - "http://localhost:3210/health"
+
       interval: 30s
       timeout: 10s
       retries: 3
 
-  worker:
-    image: ghcr.io/chatbotxio/chatbotx-worker:latest
-    platform: linux/amd64
-    restart: unless-stopped
-    networks:
-      - main
-      - javascript-executor-network
-    environment:
-      <<: *common-env
-    command: ["worker", "all"]
-    depends_on:
-      postgres:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
-      filesystem:
-        condition: service_healthy
-      javascript-executor:
-        condition: service_healthy
 
+  # =========================================================
+  # REALTIME
+  # =========================================================
   realtime:
     <<: *network
-    image: ghcr.io/chatbotxio/chatbotx-realtime:latest
-    platform: linux/amd64
+
+    image: "ghcr.io/chatbotxio/chatbotx-realtime:latest"
+
+    platform: "linux/amd64"
+
     restart: unless-stopped
-    environment:
-      <<: *common-env
+
     entrypoint: >
       bash -c "
         cd /app/apps/realtime;
         echo \"REALTIME_BROADCAST_SECRET=$${REALTIME_BROADCAST_SECRET}\" > .env;
         HOSTNAME=0.0.0.0 PORT=1999 pnpm dlx partykit dev;
       "
+
+    environment:
+      <<: *common-vars
+
     expose:
       - "1999"
 
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+
+  # =========================================================
+  # CHATBOTX BUILDER / FRONTEND
+  # =========================================================
+  builder:
+    <<:
+      - *network
+      - *depends-datastores
+
+    image: "ghcr.io/chatbotxio/chatbotx-builder:latest"
+
+    platform: "linux/amd64"
+
+    restart: unless-stopped
+
+    environment:
+      <<: *common-vars
+
+    expose:
+      - "3000"
+
+    healthcheck:
+      # Node is available in the builder image; curl is not guaranteed.
+      test:
+        - CMD
+        - node
+        - -e
+        - "fetch('http://127.0.0.1:3000/api/health', {signal:AbortSignal.timeout(8000)}).then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"
+
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 120s
+
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+
+  # =========================================================
+  # WORKER
+  # =========================================================
+  worker:
+    image: "ghcr.io/chatbotxio/chatbotx-worker:latest"
+
+    platform: "linux/amd64"
+
+    restart: unless-stopped
+
+    networks:
+      - main
+      - javascript-executor-network
+
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+      redis:
+        condition: service_healthy
+
+      filesystem:
+        condition: service_healthy
+
+      javascript-executor:
+        condition: service_healthy
+
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+    environment:
+      <<: *common-vars
+
+    command:
+      - worker
+      - all
+
+
+# =========================================================
+# NETWORKS
+# =========================================================
 networks:
+
   main:
     driver: bridge
+
   javascript-executor-network:
     driver: bridge
     internal: true
 
+
+# =========================================================
+# VOLUMES PERSISTENTES
+# =========================================================
 volumes:
+
   db-data:
+
   redis-data:
+
+  filesystem-data:
