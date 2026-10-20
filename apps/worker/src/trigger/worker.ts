@@ -1,0 +1,146 @@
+import { flushAllPendingWorkspaceRealtimeEvents } from "@chatbotx.io/business"
+import {
+  decisionFlowOriginSchema,
+  extractContactInboxId,
+} from "@chatbotx.io/events"
+import { runWithWebhookExecutionContext } from "@chatbotx.io/events/context"
+import { SdkException } from "@chatbotx.io/sdk"
+import {
+  defaultWorkerOptions,
+  getQueueConnection,
+  queueNames,
+  TriggerJobAction,
+  type TriggerJobData,
+} from "@chatbotx.io/worker-config"
+import { type Job, Worker } from "bullmq"
+import { ensureBootstrapped } from "../lib/bootstrap"
+import { isBlockedWorkspace } from "../lib/is-blocked-workspace"
+import { logger } from "../lib/logger"
+import { resolveWorkspaceId } from "../lib/resolve-workspace-id"
+import { runJobWithAuditContext } from "../lib/run-job-with-audit-context"
+import { TriggerExecutorService } from "./services/trigger-executor.service"
+import { TriggerMatcherService } from "./services/trigger-matcher.service"
+import type { TriggerEventData } from "./types"
+
+const triggerMatcher = new TriggerMatcherService()
+const triggerExecutor = new TriggerExecutorService()
+
+async function startTriggerWorker() {
+  try {
+    await ensureBootstrapped()
+    logger.info("Trigger worker bootstrapped successfully")
+  } catch (err) {
+    logger.error(err, "Failed to bootstrap trigger worker")
+    process.exit(1)
+  }
+
+  const worker = new Worker(
+    queueNames.enum.trigger,
+    async (job: Job<TriggerJobData>) => {
+      const workspaceId = await resolveWorkspaceId(job.data.data)
+      if (await isBlockedWorkspace(workspaceId)) {
+        return
+      }
+
+      await runJobWithAuditContext(
+        { workspaceId, source: "trigger:evaluateTriggers" },
+        async () => {
+          switch (job.data.type) {
+            case TriggerJobAction.evaluateTriggers: {
+              const { data: eventData } = job.data
+
+              if (eventData.source === "worker") {
+                logger.info("Skipping worker-emitted event to prevent loop")
+                return
+              }
+
+              const matchedTriggers = await triggerMatcher.findMatchingTriggers(
+                eventData as TriggerEventData,
+              )
+
+              if (matchedTriggers.length === 0) {
+                return
+              }
+
+              logger.info(
+                `Found ${matchedTriggers.length} triggers for event type ${eventData.eventType}`,
+              )
+
+              const contactInboxId = extractContactInboxId(eventData.eventData)
+              const decisionFlowOrigin = decisionFlowOriginSchema.safeParse(
+                eventData.eventData?.decisionFlowOrigin,
+              )
+
+              await runWithWebhookExecutionContext(
+                eventData.channelOriginated ? { source: "webhook" } : {},
+                () =>
+                  Promise.allSettled(
+                    matchedTriggers.map((trigger) =>
+                      triggerExecutor.execute(trigger, {
+                        contactId: eventData.contactId,
+                        contactInboxId,
+                        decisionFlowOrigin: decisionFlowOrigin.success
+                          ? decisionFlowOrigin.data
+                          : undefined,
+                        occurrenceId: job.id
+                          ? `${job.id}:${job.timestamp}`
+                          : undefined,
+                      }),
+                    ),
+                  ),
+              )
+              return
+            }
+
+            default:
+              throw new SdkException("TriggerJobAction action is not defined")
+          }
+        },
+      )
+    },
+    {
+      connection: getQueueConnection(queueNames.enum.trigger),
+      ...defaultWorkerOptions,
+      concurrency: 100,
+    },
+  )
+
+  worker.on("failed", (job, err) => {
+    if (job) {
+      logger.error(err, `Trigger job ${job.id} has failed`)
+    }
+  })
+
+  worker.on("completed", (job) => {
+    logger.info(`Trigger job ${job.id} completed successfully`)
+  })
+
+  logger.info("Trigger worker started")
+
+  let isShuttingDown = false
+  async function shutdown() {
+    if (isShuttingDown) {
+      return
+    }
+    isShuttingDown = true
+    let shutdownFailed = false
+    try {
+      await worker.close()
+    } catch (err) {
+      shutdownFailed = true
+      logger.error(err, "[TriggerWorker] Error closing worker during shutdown")
+    } finally {
+      try {
+        await flushAllPendingWorkspaceRealtimeEvents()
+      } catch (err) {
+        shutdownFailed = true
+        logger.error(err, "[TriggerWorker] Error flushing realtime events")
+      }
+    }
+    process.exit(shutdownFailed ? 1 : 0)
+  }
+  process.once("SIGINT", shutdown)
+  process.once("SIGTERM", shutdown)
+}
+
+startTriggerWorker()
