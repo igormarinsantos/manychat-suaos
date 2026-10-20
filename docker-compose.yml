@@ -1,4 +1,4 @@
-name: chatbotx-suaos
+127.0.0.1:3000/api/healthname: chatbotx-suaos
 
 x-network: &network
   networks:
