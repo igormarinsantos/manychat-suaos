@@ -1,0 +1,56 @@
+name: Publish ChatbotX images
+
+on:
+  workflow_dispatch:
+    inputs:
+      source_ref:
+        description: ChatbotX source branch or tag
+        required: true
+        default: main
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  publish:
+    name: Build ${{ matrix.name }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      max-parallel: 1
+      matrix:
+        include:
+          - name: builder
+            dockerfile: apps/builder/docker/Dockerfile
+          - name: realtime
+            dockerfile: apps/realtime/docker/Dockerfile
+          - name: worker
+            dockerfile: apps/worker/docker/Dockerfile
+    steps:
+      - name: Check out ChatbotX
+        uses: actions/checkout@v4
+        with:
+          repository: chatbotxio/chatbotx
+          ref: ${{ inputs.source_ref }}
+          path: chatbotx
+
+      - name: Set up Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Sign in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and publish
+        uses: docker/build-push-action@v6
+        with:
+          context: chatbotx
+          file: chatbotx/${{ matrix.dockerfile }}
+          push: true
+          tags: ghcr.io/${{ github.repository_owner }}/manychat-suaos-${{ matrix.name }}:latest
+          cache-from: type=gha,scope=chatbotx-${{ matrix.name }}
+          cache-to: type=gha,mode=max,scope=chatbotx-${{ matrix.name }}

@@ -299,7 +299,7 @@ services:
   realtime:
     <<: *network
 
-    image: "ghcr.io/chatbotxio/chatbotx-realtime:latest"
+    image: "ghcr.io/igormarinsantos/manychat-suaos-realtime:latest"
 
     platform: "linux/amd64"
 
@@ -330,7 +330,7 @@ services:
       - *network
       - *depends-datastores
 
-    image: "ghcr.io/chatbotxio/chatbotx-builder:latest"
+    image: "ghcr.io/igormarinsantos/manychat-suaos-builder:latest"
 
     platform: "linux/amd64"
 
@@ -363,7 +363,7 @@ services:
   # WORKER
   # =========================================================
   worker:
-    image: "ghcr.io/chatbotxio/chatbotx-worker:latest"
+    image: "ghcr.io/igormarinsantos/manychat-suaos-worker:latest"
 
     platform: "linux/amd64"
 
