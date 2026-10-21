@@ -1,1 +1,0 @@
-ALTER TABLE "MetaCapiEvent" DROP CONSTRAINT "MetaCapiEvent_channel_check", ADD CONSTRAINT "MetaCapiEvent_channel_check" CHECK ("channel" IN ('messenger', 'instagram', 'whatsapp'));

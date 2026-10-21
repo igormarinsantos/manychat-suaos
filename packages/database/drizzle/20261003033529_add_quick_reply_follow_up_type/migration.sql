@@ -1,1 +1,0 @@
-ALTER TYPE "ContactOnSmartDelayType" ADD VALUE 'quickReplyFollowUp';

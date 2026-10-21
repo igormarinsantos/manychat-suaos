@@ -1,1 +1,0 @@
-ALTER TABLE "CustomDomain" DROP COLUMN "txtRecord";

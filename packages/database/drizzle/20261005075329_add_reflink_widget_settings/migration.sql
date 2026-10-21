@@ -1,2 +1,0 @@
-ALTER TABLE "Reflink" ADD COLUMN "widgetAuthorizedDomains" text[] DEFAULT ARRAY[]::text[] NOT NULL;--> statement-breakpoint
-ALTER TABLE "Reflink" ADD COLUMN "widgetHiddenInboxIds" text[] DEFAULT ARRAY[]::text[] NOT NULL;

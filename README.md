@@ -9,228 +9,89 @@
 </p>
 
 <p align="center">
-  <a href="https://opensource.org/license/mit">
-    <img alt="License" src="https://img.shields.io/badge/license-MIT-blue?labelColor=111827">
-  </a>
-</p>
-
-<h3 align="center"><strong><a href="https://chatbotx.io/lifetime/?ref=github">NEW: Get a Lifetime Deal on ChatbotX Cloud</a></strong></h3>
-<h3 align="center"><strong><a href="https://github.com/ChatbotXIO/chatbotx-agent">NEW: get 500+ MCP and CLI Tools for Your AI Agents</a></strong></h3>
-
-<p align="center">
-  <strong>Agentic chat marketing platform built for OpenClaw, Hermes, and Claude</strong>
-  <br>
-  An alternative to ManyChat, Chatfuel, Wati, Respond, etc...
-</p>
-
-<p align="center">
-  <a href="https://chatbotx.io/">Website</a>
-  |
-  <a href="https://chatbotx.canny.io/">Roadmap</a>
-  |
-  <a href="https://chatbotx.io/docs" rel="dofollow">Docs</a>
-  |
+  <a href="https://chatbotx.io">Website</a>
+  ·
+  <a href="https://chatbotx.io/docs">Docs</a>
+  ·
   <a href="https://discord.chatbotx.io/">Discord</a>
 </p>
 
-<p align="center">
-  <img alt="TypeScript" src="https://img.shields.io/badge/TypeScript-3178C6?logo=typescript&logoColor=white">
-  <img alt="Next.js" src="https://img.shields.io/badge/Next.js-111827?logo=nextdotjs&logoColor=white">
-  <img alt="Turborepo" src="https://img.shields.io/badge/Turborepo-EF4444?logo=turborepo&logoColor=white">
-  <img alt="pnpm" src="https://img.shields.io/badge/pnpm-F69220?logo=pnpm&logoColor=white">
-  <img alt="PostgreSQL" src="https://img.shields.io/badge/PostgreSQL-4169E1?logo=postgresql&logoColor=white">
-  <img alt="Redis" src="https://img.shields.io/badge/Redis-DC382D?logo=redis&logoColor=white">
-  <img alt="Docker" src="https://img.shields.io/badge/Docker-2496ED?logo=docker&logoColor=white">
-  <img alt="MCP" src="https://img.shields.io/badge/MCP-111827">
-</p>
+## Watch the tutorial for Docker Compose install
 
-<p align="center">
-  <img alt="WhatsApp" src=".github/assets/readme/whatsapp.svg" width="32">
-  <img alt="Messenger" src=".github/assets/readme/messenger.svg" width="32">
-  <img alt="Instagram" src=".github/assets/readme/instagram.svg" width="32">
-  <img alt="Telegram" src=".github/assets/readme/telegram.svg" width="32">
-  <img alt="Zalo" src=".github/assets/readme/zalo.svg" width="32">
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset=".github/assets/readme/tiktok-dark.svg">
-    <source media="(prefers-color-scheme: light)" srcset=".github/assets/readme/tiktok-light.svg">
-    <img alt="TikTok" src=".github/assets/readme/tiktok-light.svg" width="32">
-  </picture>
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset=".github/assets/readme/threads-dark.svg">
-    <source media="(prefers-color-scheme: light)" srcset=".github/assets/readme/threads-light.svg">
-    <img alt="Threads" src=".github/assets/readme/threads-light.svg" width="32">
-  </picture>
-  <img alt="Email" src=".github/assets/readme/email.svg" width="32">
-  <img alt="Website" src=".github/assets/readme/website.svg" width="32">
-</p>
+Follow the **[Quick Start](https://chatbotx.io/docs/quickstart)** in the ChatbotX documentation to go from Docker Compose to a running workspace.
 
-<p align="center">
-  <a href="https://youtube.com/@chatbotxofficial" rel="dofollow"><strong>Watch the YouTube Tutorials»</strong></a>
-  <br />
-</p>
+## Warning
 
-<p align="center">
-  <a href="https://app.chatbotx.io">Register</a>
-  ·
-  <a href="https://chatbotx.io/docs/cli/introduction">CLI</a>
-  ·
-  <a href="https://chatbotx.io/docs/mcp/introduction">MCP</a>
-  ·
-  <a href="https://chatbotx.io/docs/api-reference/api-overview">Public API</a><br />
-</p>
+If you are upgrading from an older ChatbotX version or Compose layout, verify that your compose file and environment variables match the current **[documentation](https://chatbotx.io/docs)** before starting services.
 
-<p align="center">
-  <a href="https://chatbotx.io/docs/integrations/n8n">N8N custom node</a>
-  ·
-  <a href="https://chatbotx.io/docs/integrations/make">Make.com integration</a>
-</p>
 
-<p align="center">
-  <a href="https://www.youtube.com/watch?v=b1NUlA-fIzw" target="_blank">
-    <img alt="ChatbotX Omnichannel" src=".github/assets/readme/chatbotx-hero.png?v=1786238500653">
-  </a>
-</p>
+## Docker Compose
 
-## ✨ Features
+This guide assumes that you have Docker installed with enough resources to run ChatbotX (PostgreSQL/TimescaleDB, Redis, RustFS, builder, worker, javascript-executor, and realtime).
 
-- **Omnichannel:** WhatsApp, Facebook, Instagram, Threads, TikTok, Telegram, Zalo, Email, API, and Webchat
-- **Visual Flow Builder:** Drag-and-drop chatbot builder with 15+ node types
-- **AI Agents:** OpenAI, Claude, Gemini, DeepSeek, OpenRouter, NVIDIA NIM, and Local LLMs
-- **Live Chat Inbox:** Real-time inbox with human takeover and conversation assignment
-- **Contact CRM:** Manage contacts with tags, custom fields, and segmentation
-- **Broadcasting:** Send targeted messages to specific contact segments
-- **Sequences:** Automate drip campaigns with scheduled messages and auto-enrollment
-- **Team Management:** Invite team members, assign roles, and manage permissions
-- **Rich Messaging:** Media, files, buttons, quick replies, catalogs, locations, and carousel cards
-- **Comment-to-DM:** Automatically message users who comment with specific keywords
-- **Comment Automation:** Auto-reply, like, and hide comments on Messenger, Instagram, Threads, and TikTok posts (on Threads: public reply and hide only — it has no DM or like API)
-- **A/B Testing:** Test and optimize different message flows
-- **Triggers:** Execute actions based on events within your bot
-- **Webhooks & HTTP:** Integrate external APIs directly into your flows
-- **Growth Tools:** Generate conversation starter links for each platform
-- **Analytics:** Track performance metrics, user engagement, and campaign results
-- **APIs, CLI, and MCP:** Build advanced agent workflows with MCP-compatible clients
+This repository runs the pre-built ChatbotX images published to `ghcr.io`. If you want to modify ChatbotX itself, use the **[main repository](https://github.com/ChatbotXIO/ChatbotX)** and its local development compose file instead.
 
-| ![AI Agents and Flows](.github/assets/readme/1-ai-agents-and-flows.webp) | ![Live Chat and Team](.github/assets/readme/2-live-chat-and-team.webp) |
-| ------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------- |
-| ![Broadcast and Sequence](.github/assets/readme/3-broadcast-and-sequence.webp) | ![Growth Tools](.github/assets/readme/4-growth-tools.webp) |
-| ![Import Contacts](.github/assets/readme/5-import-contacts.webp) | ![OpenClaw and Hermes](.github/assets/readme/6-openclaw-hermes.webp) |
+This Docker Compose setup has been tested with:
 
-## Why ChatbotX?
+- Virtual Machine, Ubuntu 24.04, 2 GB RAM, 2 vCPUs (baseline; allocate more RAM for comfortable local use).
 
-| Feature | ManyChat | ChatbotX |
-|---|---:|---:|
-| Self-Hosted | ❌ | ✅ |
-| White Label | ❌ | ✅ |
-| CLI & MCP | ❌ | ✅ |
-| Cost Growth | ✅ | ❌ |
-| Public API | Limited | ✅ |
-| Omnichannel | Limited | ✅ |
-| AI Agents | Limited | ✅ |
-| AI Credits | Add-on | BYOK |
+### Configuration uses environment variables
 
-## Tech Stack
+The containers here are configured with environment variables:
 
-- Node.js 24
-- TypeScript 5
-- pnpm 10 workspaces
-- Turborepo
-- Next.js 16 and React 19 for `apps/builder`
-- uWebSockets.js gateway with Redis Streams for realtime messaging
-- Drizzle ORM with PostgreSQL and pgvector
-- Redis and BullMQ for queues and worker coordination
-- RustFS / S3-compatible storage for uploaded assets
-- Docker Compose for local infrastructure
+- **Option A** — Edit environment variables under the YAML anchors (`x-environment`, service blocks) in [`docker-compose.yml`](docker-compose.yml).
+- **Option B** — Add a Compose override file (e.g. `docker-compose.override.yml`) layered on top of this project’s compose file.
+- **Option C** — Put a `.env` file next to `docker-compose.yml` for Compose variable substitution (e.g. `POSTGRES_*`, `RUSTFS_*`, `ADMINER_PORT`). (Keep secrets out of Git.)
 
-## Quick Start
+…or mix the above approaches.
 
-To have the project up and running, please follow the [Quick Start Guide](https://chatbotx.io/docs/quickstart).
+Refer to **[ChatbotX documentation](https://chatbotx.io/docs)** for a full picture of installation, channels, and production settings.
 
-**Self-hosting ChatbotX without developing on it?** Use **[chatbotx-docker-compose](https://github.com/ChatbotXIO/chatbotx-docker-compose)** — a standalone repo that runs the pre-built `ghcr.io` images with `docker compose up`, no local checkout of this monorepo required. The compose files in this repository (`docker-compose.yml`, `docker-compose.dev.yml`) provision local infrastructure only and expect the apps to run from source via `pnpm dev`.
+Setup:
 
-## Project Structure
-
-```text
-.
-|-- apps/
-|   |-- builder/       # Next.js web app and product builder
-|   |-- worker/        # background workers for chat, AI, triggers, webhooks, analytics, sequences
-|   |-- realtime/      # realtime server
-|   |-- cli/           # ChatbotX command line client
-|   `-- mcp-server/    # MCP server backed by public APIs
-|-- integrations/
-|   |-- whatsapp/
-|   |-- messenger/
-|   |-- instagram/
-|   |-- threads/
-|   |-- telegram/
-|   |-- zalo/
-|   |-- tiktok/
-|   |-- webchat/
-|   |-- smtp/
-|   |-- openai/
-|   |-- google-sheets/
-|   `-- ...           # email/CRM: mailchimp, klaviyo, active-campaign, drip, get-response, mailer-lite, moosend, sendgrid
-|-- packages/
-|   |-- database/
-|   |-- ai/
-|   |-- auth/
-|   |-- business/
-|   |-- automated-response/
-|   |-- analytics/
-|   |-- event-bus/
-|   |-- mail/
-|   |-- imports/
-|   |-- flow-config/
-|   |-- variables/
-|   |-- sdk/
-|   |-- scheduler/
-|   |-- sequence-scheduler/
-|   |-- ui/
-|   `-- worker-config/
-|-- docker-compose.yml
-|-- pnpm-workspace.yaml
-`-- turbo.json
+```
+git clone https://github.com/ChatbotXIO/chatbotx-docker-compose.git
+cd chatbotx-docker-compose
 ```
 
-## Development Commands
+Then run:
 
-```bash
-pnpm dev              # run turbo dev
-pnpm build            # build all packages/apps through Turborepo
-pnpm lint             # run Ultracite lint
-pnpm fix              # run Ultracite fix
-pnpm check:circular   # check circular dependencies
-pnpm check:unused     # check unused files and dependencies
+```
+docker compose up
 ```
 
-Useful package-level commands:
+Wait for the stack to become healthy, then open the app and tooling:
 
-```bash
-pnpm --filter builder dev
-pnpm --filter worker dev
-pnpm --filter realtime dev
-pnpm --filter chatbotx dev:cli
-pnpm --filter chatbotx-mcp dev:mcp
-pnpm --filter @chatbotx.io/database db:studio
-```
+| Service              | URL                        |
+|----------------------|----------------------------|
+| Builder              | http://localhost:3123       |
+| Realtime             | http://localhost:1999       |
+| RustFS               | http://localhost:9000 (S3-compatible API); console http://localhost:9001 |
+| MailHog              | http://localhost:8025 (UI); SMTP http://localhost:1025 |
+| Adminer              | http://localhost:8080       |
+| Postgres             | `localhost:5432` (credentials from compose defaults) |
+| Redis                | `localhost:6379`            |
+| JavaScript Executor  | internal only — not published to the host; runs sandboxed user JS on an isolated, internal-only Docker network reachable solely from `worker` |
 
-## Services
+---
 
-The default Docker Compose stack includes:
+## The `docker-compose.yml` file
 
-- PostgreSQL with pgvector on `5432`
-- Redis on `6379`
-- RedisInsight on `5540`
-- RustFS object storage on `9000` and console on `9001`
-- MailHog SMTP on `1025` and UI on `8025`
-- Adminer on `8080`
+The full, current stack definition lives in **[`docker-compose.yml`](docker-compose.yml)** in this repository — that file is the source of truth, so it isn't duplicated here (a copy in this README would inevitably drift out of sync with it).
 
-## Support
+Notable details worth knowing before you edit it:
 
-If ChatbotX helps you avoid expensive chatbot automation tools, please give us a ⭐ on GitHub.
-We're also working hard to bring open-source mobile apps to **iOS and Android** this year
+- All application images (`builder`, `worker`, `realtime`, `javascript-executor`) are pulled from `ghcr.io/chatbotxio/*:latest` — the most recent tagged release. See the file for exact tags.
+- `javascript-executor` sandboxes untrusted, user-authored JavaScript flow steps. It sits on its own `internal: true` network with no host-published port, runs `read_only` with `cap_drop: ALL`, `no-new-privileges`, a small `noexec` tmpfs, and CPU/memory/PID limits. Only `worker` can reach it. Do not remove this isolation when customizing the file.
+- Set `JAVASCRIPT_EXECUTOR_TOKEN` to a real secret (32+ characters) before running this in anything beyond local/throwaway environments.
+
+## About ChatbotX
+
+ChatbotX is an open omnichannel chatbot stack for flows, AI agents, broadcasts, and integrations. Source and issue tracking live in the **[main ChatbotX repository](https://github.com/ChatbotXIO/ChatbotX)**.
 
 ## License
 
-ChatbotX' Community Edition is released as open source under the [MIT License](https://github.com/ChatbotXIO/ChatbotX/blob/main/LICENSE) and enterprise features are released under [Commercial License](https://github.com/ChatbotXIO/ChatbotX/blob/main/apps/builder/src/enterprise/LICENSE)
+This repository is released under the **[MIT License](LICENSE)**. The main ChatbotX application (see the **[main repository](https://github.com/ChatbotXIO/ChatbotX)**) is MIT-licensed as well, with enterprise features under a separate Commercial License.
+
+This Docker Compose readme follows ChatbotX documentation patterns (tutorial and warnings upfront, Compose prerequisites, environment-variable options, and clone/run workflow).
+

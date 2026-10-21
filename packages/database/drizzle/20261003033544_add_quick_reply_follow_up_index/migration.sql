@@ -1,1 +1,0 @@
-CREATE UNIQUE INDEX CONCURRENTLY IF NOT EXISTS "ContactOnSmartDelay_quickReplyFollowUp_active_key" ON "ContactOnSmartDelay" ("workspaceId","contactInboxId","flowId","nodeId") WHERE "status" NOT IN ('completed', 'failed', 'canceled') AND "type" = 'quickReplyFollowUp';

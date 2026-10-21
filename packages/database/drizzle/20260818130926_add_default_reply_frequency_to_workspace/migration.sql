@@ -1,2 +1,0 @@
-CREATE TYPE "defaultReplyFrequency" AS ENUM('allTime', 'oncePerHour', 'oncePerDay');--> statement-breakpoint
-ALTER TABLE "Workspace" ADD COLUMN "defaultReplyFrequency" "defaultReplyFrequency" DEFAULT 'allTime'::"defaultReplyFrequency" NOT NULL;

@@ -1,2 +1,0 @@
-ALTER TABLE "UserQuota" ADD COLUMN "monthlyBotMessagesPeriodStart" timestamp(6) with time zone;--> statement-breakpoint
-ALTER TABLE "UserQuota" ADD COLUMN "botMessagesTopUpGranted" integer DEFAULT 0 NOT NULL;

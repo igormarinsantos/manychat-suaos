@@ -1,1 +1,0 @@
-ALTER TYPE "fbCommentAutomationType" ADD VALUE 'tiktok';

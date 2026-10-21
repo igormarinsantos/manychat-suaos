@@ -1,1 +1,0 @@
-export const TRIGGER_MESSAGE_LOOKBACK_MS = 7 * 24 * 60 * 60 * 1000

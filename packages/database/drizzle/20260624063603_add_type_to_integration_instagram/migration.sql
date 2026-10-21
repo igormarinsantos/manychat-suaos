@@ -1,1 +1,0 @@
-ALTER TABLE "IntegrationInstagram" ADD COLUMN "type" text DEFAULT 'instagram' NOT NULL;

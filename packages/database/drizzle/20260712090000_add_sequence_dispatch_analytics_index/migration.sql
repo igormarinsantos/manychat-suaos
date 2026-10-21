@@ -1,1 +1,0 @@
-CREATE INDEX "SequenceDispatch_workspace_sequence_step_id_idx" ON "SequenceDispatch" ("workspaceId","sequenceId","stepId","id");

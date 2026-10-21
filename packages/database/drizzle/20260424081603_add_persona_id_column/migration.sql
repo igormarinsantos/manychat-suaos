@@ -1,1 +1,0 @@
-ALTER TABLE "IntegrationMessenger" ADD COLUMN "personaId" text;

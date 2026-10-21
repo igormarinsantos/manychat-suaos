@@ -1,1 +1,0 @@
-ALTER TABLE "Reflink" ADD COLUMN "widgetLogoBackgroundColor" text;

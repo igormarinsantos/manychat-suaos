@@ -1,1 +1,0 @@
-ALTER TABLE "AIAssistant" DROP COLUMN "aiTriggerIds";

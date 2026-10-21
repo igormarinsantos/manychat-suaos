@@ -1,4 +1,4 @@
-name: chatbotx-suaos
+127.0.0.1:3000/api/healthname: chatbotx-suaos
 
 x-network: &network
   networks:
@@ -299,11 +299,7 @@ services:
   realtime:
     <<: *network
 
-    build:
-
-      context: .
-
-      dockerfile: apps/realtime/docker/Dockerfile
+    image: "ghcr.io/chatbotxio/chatbotx-realtime:latest"
 
     platform: "linux/amd64"
 
@@ -334,11 +330,7 @@ services:
       - *network
       - *depends-datastores
 
-    build:
-
-      context: .
-
-      dockerfile: apps/builder/docker/Dockerfile
+    image: "ghcr.io/chatbotxio/chatbotx-builder:latest"
 
     platform: "linux/amd64"
 
@@ -371,9 +363,7 @@ services:
   # WORKER
   # =========================================================
   worker:
-    build:
-      context: .
-      dockerfile: apps/worker/docker/Dockerfile
+    image: "ghcr.io/chatbotxio/chatbotx-worker:latest"
 
     platform: "linux/amd64"
 

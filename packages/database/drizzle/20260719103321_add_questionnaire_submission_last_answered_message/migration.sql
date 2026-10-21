@@ -1,1 +1,0 @@
-ALTER TABLE "QuestionnaireSubmission" ADD COLUMN "lastAnsweredMessageId" bigint;
