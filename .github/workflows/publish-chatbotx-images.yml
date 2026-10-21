@@ -35,6 +35,13 @@ jobs:
           ref: ${{ inputs.source_ref }}
           path: chatbotx
 
+      # The hosted GitHub runner has 7 GB of RAM. The upstream builder image
+      # permits Node to reserve 4 GB, leaving too little headroom for Next.js
+      # and BuildKit. Limit its heap so the image can be produced off-server.
+      - name: Tune builder memory for hosted runner
+        if: matrix.name == 'builder'
+        run: sed -i 's/--max-old-space-size=4096/--max-old-space-size=3072/' chatbotx/apps/builder/docker/Dockerfile
+
       - name: Set up Buildx
         uses: docker/setup-buildx-action@v3
 
