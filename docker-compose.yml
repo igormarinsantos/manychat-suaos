@@ -338,6 +338,9 @@ services:
 
     environment:
       <<: *common-vars
+      # The upstream image otherwise uses Docker's internal hostname as the bind address.
+      # Coolify's proxy needs the server reachable on every container interface.
+      HOSTNAME: "0.0.0.0"
 
     expose:
       - "3000"
