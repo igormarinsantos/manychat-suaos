@@ -17,10 +17,12 @@ x-environment: &common-vars
   # =========================================================
   # SUAOS - URLs PUBLICAS
   # =========================================================
-  BETTER_AUTH_URL: "https://many.suaos.ia.br"
-  NEXT_PUBLIC_BUILDER_URL: "https://many.suaos.ia.br"
-  NEXT_PUBLIC_REALTIME_URL: "https://many-rt.suaos.ia.br"
-  NEXT_PUBLIC_ASSET_URL: "https://many-files.suaos.ia.br/chatbotx/"
+  # Cada instalacao no Coolify define PUBLIC_APP_URL, PUBLIC_REALTIME_URL e PUBLIC_ASSET_URL.
+  # Sem elas, vale o endereco do suaos.
+  BETTER_AUTH_URL: "${PUBLIC_APP_URL:-https://many.suaos.ia.br}"
+  NEXT_PUBLIC_BUILDER_URL: "${PUBLIC_APP_URL:-https://many.suaos.ia.br}"
+  NEXT_PUBLIC_REALTIME_URL: "${PUBLIC_REALTIME_URL:-https://many-rt.suaos.ia.br}"
+  NEXT_PUBLIC_ASSET_URL: "${PUBLIC_ASSET_URL:-https://many-files.suaos.ia.br/chatbotx/}"
 
   # =========================================================
   # SECRETS - GERADOS AUTOMATICAMENTE PELO COOLIFY
